@@ -6,6 +6,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Stack;
 
 /**
@@ -13,16 +14,13 @@ import java.util.Stack;
  */
 public class PdfMergeMain {
 
+    public static final String FRONT = "f";
+    public static final String BACK = "b";
+
     public static void main(String[] args) throws Exception {
-        Options options = new Options()
-                .addOption(Option.builder("f").longOpt("front").desc("Front pages pdf").hasArg().required().build())
-                .addOption(Option.builder("b").longOpt("back").desc("Back pages pdf").hasArg().required().build());
-
-        CommandLineParser parser = new DefaultParser();
-        CommandLine cmd = parser.parse(options, args);
-
-        String front = cmd.getOptionValue("f");
-        String back = cmd.getOptionValue("b");
+        CommandLine cmd = validateCommandLine(args);
+        String front = cmd.getOptionValue(FRONT);
+        String back = cmd.getOptionValue(BACK);
 
         PDDocument frontDocument = PDDocument.load(new File(front));
         PDDocument backDocument = PDDocument.load(new File(back));
@@ -41,10 +39,15 @@ public class PdfMergeMain {
             }
         }
 
-        if(!backPageStack.empty()) {
-            merged.addPage(backPageStack.pop());
-        }
-
         merged.save("merged.pdf");
+    }
+
+    private static CommandLine validateCommandLine(String[] args) throws ParseException {
+        Options options = new Options()
+                .addOption(Option.builder(FRONT).longOpt("front").desc("Front pages pdf").hasArg().required().build())
+                .addOption(Option.builder(BACK).longOpt("back").desc("Back pages pdf").hasArg().required().build());
+
+        CommandLineParser parser = new DefaultParser();
+        return parser.parse(options, args);
     }
 }
